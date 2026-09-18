@@ -1,0 +1,12 @@
+// Shared build settings -- committed to git.
+//
+// Do NOT put your Apple Team ID or bundle prefix here. They go in
+// Local.xcconfig, which is gitignored. Copy Local.example.xcconfig to
+// Local.xcconfig, or run ./setup.sh.
+
+BUNDLE_ID_PREFIX = com.example
+DEVELOPMENT_TEAM =
+
+// Optional include -- later definitions win, so Local.xcconfig overrides the
+// placeholders above. The "?" means the build still works if it's missing.
+#include? "Local.xcconfig"

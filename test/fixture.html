@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+body{margin:0;font:16px system-ui}
+#main-content{height:4000px;background:linear-gradient(#eee,#ccc)}
+configured-xpromo-modal{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);
+  display:flex;align-items:flex-end}
+.sheet{background:#fff;width:100%;padding:24px;text-align:center}
+</style></head><body>
+<main id="main-content">feed content</main>
+<script>
+// Mimic Reddit: mount the blocking modal + lock scroll a beat after load.
+setTimeout(() => {
+  const m = document.createElement('configured-xpromo-modal');
+  m.setAttribute('data-faceplate-tracking-context',
+    '{"experience":{"name":"mweb3x_mid_funnel_blocking_v1_30s"}}');
+  m.setAttribute('actioned','');
+  m.innerHTML = '<div class="sheet"><h2>Continue in the Reddit app</h2>' +
+                '<button>Open in app</button></div>';
+  document.body.appendChild(m);
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+}, 300);
+</script></body></html>

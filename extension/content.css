@@ -1,0 +1,62 @@
+/*
+ * Injected at document_start, before Reddit's own JS runs.
+ *
+ * Everything is scoped to html:not([data-reddit-unblock="off"]) so the popup
+ * toggle can switch the whole extension off by setting that one attribute.
+ *
+ * !important is what does the work here: Reddit applies the scroll lock as an
+ * inline style (body.style.overflow = "hidden"), and an author stylesheet's
+ * !important beats a non-important inline style.
+ */
+
+html:not([data-reddit-unblock="off"]),
+html:not([data-reddit-unblock="off"]) body {
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  /* The other half of the scroll lock: position:fixed + a negative top. */
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  touch-action: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Reddit dims and blurs the feed behind the login/app wall. */
+html:not([data-reddit-unblock="off"]) shreddit-app,
+html:not([data-reddit-unblock="off"]) #main-content,
+html:not([data-reddit-unblock="off"]) main {
+  filter: none !important;
+  pointer-events: auto !important;
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+}
+
+/* Any element still shouting about the app gets hidden even if the JS pass
+   below hasn't gotten to it yet -- avoids a flash on slow loads. */
+html:not([data-reddit-unblock="off"]) [id*="xpromo" i],
+html:not([data-reddit-unblock="off"]) [class*="xpromo" i],
+html:not([data-reddit-unblock="off"]) [bundlename*="xpromo" i],
+html:not([data-reddit-unblock="off"]) [bundlename*="app_promo" i],
+html:not([data-reddit-unblock="off"]) [data-faceplate-tracking-context*="mid_funnel_blocking" i],
+html:not([data-reddit-unblock="off"]) shreddit-app-promo,
+html:not([data-reddit-unblock="off"]) shreddit-experience-tree,
+html:not([data-reddit-unblock="off"]) configured-xpromo-modal {
+  display: none !important;
+}
+
+/*
+ * Promoted posts. Separate opt-out attribute so the popup can keep the
+ * anti-wall behaviour while letting ads back in.
+ */
+html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) shreddit-ad-post,
+html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) shreddit-sidebar-ad,
+html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) shreddit-comments-page-ad,
+html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) [promoted],
+html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) .promotedlink {
+  display: none !important;
+}
