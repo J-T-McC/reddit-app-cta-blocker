@@ -1,5 +1,5 @@
 // Point PLAYWRIGHT at an install whose browsers are actually downloaded:
-//   PLAYWRIGHT=~/.agents/skills/playwright/node_modules/playwright-core node test/check.mjs
+//   PLAYWRIGHT=~/.agents/skills/playwright/node_modules/playwright-core/index.mjs node test/check.mjs
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -49,6 +49,10 @@ async function run(label, url, withExt) {
         didScroll: scrolled,
         scrollY: window.scrollY,
         textLen: (document.body.innerText || '').length,
+        // Anything left here makes every <shreddit-player> refuse to play.
+        playbackBlockers: document.querySelectorAll('[data-blocks-background-playback]').length,
+        // Fixture only: did the fake player see a blocker when the event fired?
+        videoPausedByPolicy: window.__videoPausedByPolicy ?? 'n/a',
         killed: [...document.querySelectorAll('[data-ru-killed]')]
           .map(e => e.tagName.toLowerCase() + '#' + (e.id||'-') + '.' +
                     (String(e.className||'-').slice(0,40)) +

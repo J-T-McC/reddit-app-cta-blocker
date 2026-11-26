@@ -2,7 +2,9 @@
 
 A Safari Web Extension that hides Reddit's "open in the app" wall, undoes the
 scroll lock it leaves behind, and hides promoted posts — so reddit.com stays
-usable while logged out. Builds for **iOS and macOS** from one Xcode project.
+usable while logged out. On mobile it also puts back what the mobile site
+leaves out: comment sort, comment search, and comments that keep loading as
+you scroll. Builds for **iOS and macOS** from one Xcode project.
 
 Unofficial and not affiliated with Reddit. [MIT licensed](LICENSE).
 
@@ -78,8 +80,60 @@ it on iOS — everything is in Settings and Safari.
 ## Using it
 
 The toolbar popup (the **ᴀA** or puzzle-piece icon in Safari's address bar)
-has two switches — the extension itself, and ad hiding — and both take effect
-in open tabs immediately.
+holds the settings. All of them take effect in open tabs immediately.
+
+| Setting | Default | What it does |
+|---|---|---|
+| Enabled | on | The whole extension. |
+| Hide ads in feed | on | Hides promoted posts. |
+| Load more comments while scrolling | on | Presses Reddit's own "View more comments" as you near the end of the comments, so they keep coming (mobile shows 4 top-level comments at first, desktop ~25). |
+| Open posts in a new tab | off | Tapping a post opens it in a new tab. On iPhone, swiping back then closes that tab and returns you to the feed exactly as you left it. |
+| Hide posts containing | empty | Comma-separated words or phrases. Hides matching feed posts and search results. See the example below. |
+
+### Example: hiding a topic
+
+Type this into **Hide posts containing**:
+
+```
+taylor swift, crypto
+```
+
+Each comma-separated entry is a phrase. A post is hidden if its title, flair
+or text preview contains a full phrase. Case doesn't matter, and the phrase
+has to stand on its own as words. Searching Reddit for `swift` with that
+filter on:
+
+| Result | Shown? | Why |
+|---|---|---|
+| Taylor Swift at the 2026 CMAs | hidden | contains "taylor swift" |
+| Why do boys hate taylor swift??? | hidden | case doesn't matter |
+| Is Taylor actually declining? | shown | "Taylor" alone isn't the phrase |
+| The problem with Swift is ... It's a mess ! | shown | "Swift" alone isn't the phrase |
+
+In testing, that hid 72 of 77 results for `swift`. Each hidden post takes its
+divider with it, so the list closes up without a gap.
+
+Two things it won't do:
+
+- **Partial words.** A filter of `swift` hides "Taylor Swift" posts but not
+  "swiftly".
+- **Override a search you made yourself.** Searching `taylor swift tour` still
+  shows those posts, because you asked for them. The filter only applies to
+  posts you didn't search for.
+
+Open tabs update a moment after you stop typing. To turn it off, clear the box.
+
+Always on, with no setting:
+
+- **Comment sort and search** on mobile post pages, where Reddit's mobile site
+  has neither. The sort is a native picker (Best, Top, New, Controversial,
+  Old, Q&A). Desktop layouts keep their own controls.
+- **Videos play** behind a hidden wall (see *Playback release* below).
+- **Back returns you to your place in the feed.** Reddit's mobile feed
+  usually reloads at the top when you go back from a post.
+
+Reddit's own search already supports excluding words: `swift -taylor` or
+`swift NOT taylor`.
 
 ## How long it lasts
 
@@ -120,8 +174,39 @@ because Reddit renames its classes constantly. On every DOM mutation:
    (experience `mweb3x_mid_funnel_blocking_v1_30s`).
 2. **Shape match** — a large fixed overlay whose text is asking you to open
    the app. The safety net for renames the first pass misses.
-3. **Scroll unlock** — undoes the inline `overflow:hidden` / `position:fixed`
+3. **Playback release** — a blocking wall marks its bottom sheet with
+   `data-blocks-background-playback`, and every `<shreddit-player>` refuses to
+   play while that attribute exists anywhere in the page. Hiding the wall
+   doesn't clear it, so the extension strips it from walls it hid. That
+   happens in a capture listener on the `shreddit-sync-playback-policy` event,
+   which runs before the players react. Dialogs you open yourself are left
+   alone.
+4. **Scroll unlock** — undoes the inline `overflow:hidden` / `position:fixed`
    scroll lock.
+
+The comment tools are rebuilt on top of things the mobile backend still
+accepts, rather than on Reddit's internal code:
+
+- **Sort** sets `?sort=confidence|top|new|controversial|old|qa`. The server
+  orders comments the same way it does for desktop, and its "more replies"
+  loaders keep the chosen sort.
+- **Search** goes to `?q=…&type=comments`, which mobile renders server-side.
+- **Load more** clicks the existing "View more comments" button (6 more
+  top-level comments per click). After the first batch Reddit shrinks that
+  button to zero height, so the trigger is a marker after the comment tree.
+  The next click waits until a batch has finished arriving, and it stops after
+  two clicks that load nothing.
+
+**Feed position on Back.** Tapping a post on mobile is a full page load, and
+Back reloads the feed whenever Safari's back-forward cache didn't keep it.
+Reddit sets `history.scrollRestoration = "manual"`, which turns off Safari's
+own restore, and then doesn't restore the position itself. The extension
+records the post at the top of the screen as you scroll (in
+`sessionStorage`). After a Back reload it brings that post back to the same
+spot, letting infinite scroll load more first if needed, and it stops the
+moment you touch the screen. The logged-out feed can come back slightly
+reshuffled, so the post you opened may be gone. "Open posts in a new tab"
+avoids the reload altogether.
 
 Promoted posts go through the same machinery. Feed ads are
 `<shreddit-ad-post promoted>` — a bare sibling of the `<article>` wrappers
@@ -169,9 +254,20 @@ node test/check.mjs https://www.reddit.com/r/gaming/
 ```
 
 Each run prints the page with and without the extension, so a regression shows
-up as a difference in post count, text length or page errors. If you have
-Playwright somewhere else, point at it with
-`PLAYWRIGHT=/path/to/playwright/index.mjs`.
+up as a difference in post count, text length or page errors. The fixture
+also replays Reddit's video-blocking flag, and reports whether a player would
+have been paused (`videoPausedByPolicy`). If you have Playwright somewhere
+else, point at it with `PLAYWRIGHT=/path/to/playwright/index.mjs`.
+
+`test/features.mjs` checks the mobile features against live Reddit: the
+comment bar, sort, search, auto-loading, the keyword filter, open-in-new-tab,
+and Back restoring the feed position. It prints PASS/FAIL for each and exits
+non-zero on any failure:
+
+```sh
+node test/features.mjs                         # built-in post + subreddit
+node test/features.mjs <post-url> <subreddit-url>
+```
 
 ## License
 

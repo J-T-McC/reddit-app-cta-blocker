@@ -20,7 +20,23 @@
         gap: 12px;
         margin-top: 14px;
       }
-      input { width: 20px; height: 20px; accent-color: #d93900; }
+      input[type="checkbox"] { width: 20px; height: 20px; flex: none; accent-color: #d93900; }
+      .field { display: block; margin-top: 16px; }
+      .field span { display: block; margin-bottom: 6px; }
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 64px;
+        padding: 8px;
+        border: 1px solid rgba(128, 128, 128, 0.4);
+        border-radius: 8px;
+        background: transparent;
+        color: inherit;
+        /* 16px stops iOS zooming the popup on focus. */
+        font: 16px -apple-system, system-ui, sans-serif;
+        resize: vertical;
+      }
+      .hint { margin-top: 4px; }
     </style>
   </head>
   <body>
@@ -33,6 +49,19 @@
     <label>
       <span>Hide ads in feed</span>
       <input id="ads" type="checkbox" checked />
+    </label>
+    <label>
+      <span>Load more comments while scrolling</span>
+      <input id="autoload" type="checkbox" checked />
+    </label>
+    <label>
+      <span>Open posts in a new tab</span>
+      <input id="newtab" type="checkbox" />
+    </label>
+    <label class="field">
+      <span>Hide posts containing</span>
+      <textarea id="keywords" placeholder="taylor swift, crypto" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+      <p class="hint">Separate with commas. Matches titles, flair and text previews.</p>
     </label>
     <script src="popup.js"></script>
   </body>

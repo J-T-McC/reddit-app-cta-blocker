@@ -60,3 +60,87 @@ html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) [promoted],
 html:not([data-reddit-unblock="off"]):not([data-ru-ads="off"]) .promotedlink {
   display: none !important;
 }
+
+/*
+ * Comment sort + search bar the content script adds where mobile Reddit
+ * omits them. Colours come from Reddit's own theme variables so it follows
+ * light/dark mode; the fallbacks only matter if those are renamed.
+ */
+html[data-reddit-unblock="off"] #ru-comment-tools {
+  display: none !important;
+}
+
+#ru-comment-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 4px;
+  padding: 0 12px;
+  color: var(--color-neutral-content, inherit);
+}
+
+#ru-comment-tools .ru-sort {
+  position: relative;
+  flex: none;
+}
+
+/* The native <select> keeps the iOS picker; this is just its arrow. */
+#ru-comment-tools .ru-sort::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+#ru-comment-tools .ru-search {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+#ru-comment-tools select,
+#ru-comment-tools input,
+#ru-comment-tools button {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  height: 36px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: var(--color-secondary-background, rgba(128, 128, 128, 0.16));
+  color: inherit;
+  font-family: inherit;
+  /* iOS zooms the page when focusing a field with a font under 16px. */
+  font-size: 16px;
+  line-height: 36px;
+}
+
+#ru-comment-tools select {
+  padding-right: 32px;
+  font-weight: 600;
+}
+
+#ru-comment-tools input {
+  flex: 1;
+  min-width: 0;
+}
+
+#ru-comment-tools input::placeholder {
+  color: var(--color-neutral-content-weak, currentColor);
+  opacity: 0.8;
+}
+
+#ru-comment-tools button {
+  flex: none;
+  font-weight: 600;
+}

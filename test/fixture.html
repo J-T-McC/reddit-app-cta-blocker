@@ -8,6 +8,14 @@ configured-xpromo-modal{position:fixed;inset:0;z-index:9999;background:rgba(0,0,
 </style></head><body>
 <main id="main-content">feed content</main>
 <script>
+// Mimic <shreddit-player>: on the policy event it pauses if anything in the
+// document still carries the blocking attribute.
+window.__videoPausedByPolicy = null;
+document.addEventListener('shreddit-sync-playback-policy', () => {
+  window.__videoPausedByPolicy =
+    document.querySelectorAll('[data-blocks-background-playback]').length > 0;
+});
+
 // Mimic Reddit: mount the blocking modal + lock scroll a beat after load.
 setTimeout(() => {
   const m = document.createElement('configured-xpromo-modal');
@@ -19,5 +27,15 @@ setTimeout(() => {
   document.body.appendChild(m);
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
+
+  // The modal's portal container: a sibling bottom sheet that flags itself as
+  // blocking playback, then asks players to re-check (Reddit's onShow).
+  const sheet = document.createElement('div');
+  sheet.id = 'configured-xpromo-0000';
+  sheet.className = 'rpl-bottom-sheet configured-xpromo configured-xpromo-bottom-sheet';
+  sheet.textContent = 'Get the app to keep using Reddit';
+  document.body.appendChild(sheet);
+  sheet.setAttribute('data-blocks-background-playback', '');
+  document.dispatchEvent(new Event('shreddit-sync-playback-policy', { cancelable: true }));
 }, 300);
 </script></body></html>
